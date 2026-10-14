@@ -1,0 +1,68 @@
+{
+  "courseTitle": "Üç Soruluk Değerlendirme Sınavı",
+  "author": "Eğitmen",
+  "activeSlideId": "slide-q1",
+  "selectedElementId": null,
+  "slides": [
+    {
+      "id": "slide-q1",
+      "type": "quiz",
+      "title": "Soru 1",
+      "background": "#0f172a",
+      "elements": [],
+      "quiz": {
+        "question": "SCORM standartlarının en önemli faydası nedir?",
+        "options": [
+          { "id": "A", "text": "Platform bağımsız içerik taşınabilirliği" },
+          { "id": "B", "text": "Yalnızca yerel ağda çalışabilmesi" },
+          { "id": "C", "text": "Raporlama yapamaması" },
+          { "id": "D", "text": "Yüksek lisans maliyeti gerektirmesi" }
+        ],
+        "correctAnswer": "A",
+        "points": 100,
+        "feedbackCorrect": "Tebrikler! Doğru cevap.",
+        "feedbackIncorrect": "Yanlış cevap, tekrar deneyiniz."
+      }
+    },
+    {
+      "id": "slide-q2",
+      "type": "quiz",
+      "title": "Soru 2",
+      "background": "#0f172a",
+      "elements": [],
+      "quiz": {
+        "question": "Hangi dosya SCORM paketinin bildirimini (manifest) içerir?",
+        "options": [
+          { "id": "A", "text": "course-data.js" },
+          { "id": "B", "text": "imsmanifest.xml" },
+          { "id": "C", "text": "SCORM_API_wrapper.js" },
+          { "id": "D", "text": "index.html" }
+        ],
+        "correctAnswer": "B",
+        "points": 100,
+        "feedbackCorrect": "Doğru! imsmanifest.xml SCORM paket tanımıdır.",
+        "feedbackIncorrect": "Yanlış cevap."
+      }
+    },
+    {
+      "id": "slide-q3",
+      "type": "quiz",
+      "title": "Soru 3",
+      "background": "#0f172a",
+      "elements": [],
+      "quiz": {
+        "question": "SCORM 1.2 sürümünde öğrenci ham puanı hangi CMI veri alanında tutulur?",
+        "options": [
+          { "id": "A", "text": "cmi.core.lesson_status" },
+          { "id": "B", "text": "cmi.core.lesson_location" },
+          { "id": "C", "text": "cmi.core.score.raw" },
+          { "id": "D", "text": "cmi.suspend_data" }
+        ],
+        "correctAnswer": "C",
+        "points": 100,
+        "feedbackCorrect": "Harika! cmi.core.score.raw doğru veri modelidir.",
+        "feedbackIncorrect": "Maalesef yanlış."
+      }
+    }
+  ]
+}

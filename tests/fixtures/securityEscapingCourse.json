@@ -1,0 +1,51 @@
+{
+  "courseTitle": "Güvenlik & Kaçış Testi $100 </script>",
+  "author": "Test Yazar & Uzman",
+  "activeSlideId": "slide-sec-1",
+  "selectedElementId": null,
+  "slides": [
+    {
+      "id": "slide-sec-1",
+      "type": "content",
+      "title": "Güvenlik Giriş </script>",
+      "background": "#ffffff",
+      "elements": [
+        {
+          "id": "elem-sec-1",
+          "type": "text",
+          "text": "Fiyat: $100 ve özel replacer deseni: $& ve $' ve $` </script>",
+          "x": 50,
+          "y": 50,
+          "width": 800,
+          "height": 60,
+          "fontSize": 20,
+          "fontColor": "#1e293b",
+          "fontBold": false,
+          "fontItalic": false,
+          "textAlign": "left",
+          "zIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "slide-sec-2",
+      "type": "quiz",
+      "title": "Güvenlik Sorusu </script>",
+      "background": "#0f172a",
+      "elements": [],
+      "quiz": {
+        "question": "Aşağıdaki fiyattan hangisi geçerlidir: $100 mi yoksa $& özel etiketi mi? </script><script>window.XSS=true</script>",
+        "options": [
+          { "id": "A", "text": "Ürün ücreti: $100 & indirimli </script>" },
+          { "id": "B", "text": "Replacer deseni: $& ve $1 </script>" },
+          { "id": "C", "text": "Normal seçenek" },
+          { "id": "D", "text": "Diğer </script>" }
+        ],
+        "correctAnswer": "A",
+        "points": 100,
+        "feedbackCorrect": "Doğru! $100 ve $& korundu. </script>",
+        "feedbackIncorrect": "Yanlış! </script> etiketleri kaçırılmalı."
+      }
+    }
+  ]
+}

@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Öğrenme Dersi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html {
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      overflow: hidden;
+      background: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    header.player-nav {
+      height: 52px;
+      min-height: 52px;
+      background: #1e293b;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid #334155;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .course-title {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+    .status-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .score-badge {
+      font-size: 12px;
+      background: #334155;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .status-badge {
+      font-size: 12px;
+      background: #334155;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    .status-badge.passed, .status-badge.completed {
+      background: #065f46;
+      color: #34d399;
+    }
+    .status-badge.failed {
+      background: #7f1d1d;
+      color: #f87171;
+    }
+    main.viewport-container {
+      flex: 1;
+      width: 100%;
+      height: calc(100% - 112px);
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .stage-scaler {
+      width: 960px;
+      height: 540px;
+      position: absolute;
+      transform-origin: center center;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: transform 0.1s ease-out;
+    }
+    .slide-canvas {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .stage-element {
+      position: absolute;
+      user-select: none;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+    }
+    .element-text {
+      width: 100%;
+      height: 100%;
+      word-break: break-word;
+      white-space: pre-wrap;
+      line-height: 1.3;
+    }
+    .element-shape {
+      width: 100%;
+      height: 100%;
+    }
+    .element-image img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .stage-button {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+      user-select: none;
+    }
+    .has-trigger {
+      cursor: pointer !important;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .has-trigger:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    /* Quiz Styles */
+    .quiz-view-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      box-sizing: border-box;
+    }
+    .player-quiz-card {
+      width: 100%;
+      max-width: 820px;
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      border-radius: 12px;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .quiz-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .quiz-pill {
+      background: rgba(139, 92, 246, 0.25);
+      color: #c084fc;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+    }
+    .quiz-points {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .player-quiz-question {
+      font-size: 20px;
+      color: #f8fafc;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+    .player-quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .player-opt-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #e2e8f0;
+      font-size: 14px;
+    }
+    .player-opt-item:hover:not(.disabled) {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.15);
+    }
+    .player-opt-item.selected {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.2);
+    }
+    .player-opt-item.is-correct {
+      border-color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.25) !important;
+    }
+    .player-opt-item.is-wrong {
+      border-color: #ef4444 !important;
+      background: rgba(239, 68, 68, 0.25) !important;
+    }
+    .player-opt-item.disabled {
+      cursor: default;
+    }
+    .player-opt-key {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: #f1f5f9;
+      flex-shrink: 0;
+    }
+    .player-opt-item.selected .player-opt-key {
+      background: #3b82f6;
+    }
+    .player-opt-item.is-correct .player-opt-key {
+      background: #10b981;
+    }
+    .player-opt-item.is-wrong .player-opt-key {
+      background: #ef4444;
+    }
+    .player-opt-text {
+      flex: 1;
+    }
+    .player-opt-tag {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .player-opt-tag.correct {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.2);
+    }
+    .player-opt-tag.wrong {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.2);
+    }
+    .player-quiz-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+    .player-btn-submit {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .player-btn-submit:hover:not(:disabled) {
+      background: #2563eb;
+    }
+    .player-btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .player-feedback-banner {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .player-feedback-banner.correct {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+      color: #34d399;
+    }
+    .player-feedback-banner.wrong {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+    }
+    .player-correct-hint {
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    footer.player-controls {
+      height: 60px;
+      min-height: 60px;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .progress-bar-container {
+      flex: 1;
+      max-width: 320px;
+      height: 8px;
+      background: #334155;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0 20px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #3b82f6;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .slide-counter {
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .nav-btn {
+      background: #3b82f6;
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: #2563eb;
+    }
+    .nav-btn:disabled {
+      background: #475569;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="player-nav">
+    <div id="courseTitle" class="course-title">E-Öğrenme Dersi</div>
+    <div class="status-container">
+      <div id="scoreBadge" class="score-badge" style="display: none;">Puan: 0 / 100</div>
+      <div id="statusBadge" class="status-badge">Başlatıldı</div>
+    </div>
+  </header>
+
+  <main class="viewport-container" id="viewportContainer">
+    <div class="stage-scaler" id="stageScaler">
+      <div class="slide-canvas" id="slideCanvas">
+        <div style="color: #94a3b8; text-align: center; padding: 40px; font-size: 16px;">
+          Ders yükleniyor...
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="player-controls">
+    <button class="nav-btn" id="prevBtn" onclick="prevSlide()">❮ Önceki</button>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <span class="slide-counter" id="slideCounter">Slayt 1 / 1</span>
+    <button class="nav-btn" id="nextBtn" onclick="nextSlide()">Sonraki ❯</button>
+  </footer>
+
+  <!-- Gömülü SCORM Wrapper & Ders Verisi (Tüm LMS ve iframe sandbox kısıtlamalarına karşı tam korumalı) -->
+  <script>
+    
+var pipwerks = window.pipwerks || (window.pipwerks = {
+  SCORM: {
+    version: "1.2",
+    handleCompletionStatus: true,
+    handleExitMode: true,
+    API: { handle: null, isFound: false },
+    connection: { isActive: false },
+    data: { completionStatus: null, exitStatus: null },
+    debug: { isActive: true },
+
+    init: function(){
+      var scorm = pipwerks.SCORM;
+      var success = false;
+      var trace = pipwerks.UTILS.trace;
+
+      if(!scorm.connection.isActive){
+        var API = scorm.API.getHandle();
+        if(API){
+          try {
+            var initRes = String(API.LMSInitialize(""));
+            if(initRes === "true" || initRes === "1"){
+              scorm.connection.isActive = true;
+              success = true;
+              scorm.data.completionStatus = scorm.get("cmi.core.lesson_status");
+            } else {
+              trace("LMSInitialize failed. Return value: " + initRes);
+            }
+          } catch(e) {
+            trace("LMSInitialize exception: " + e.message);
+          }
+        } else {
+          trace("SCORM API handle not found (Standalone mode).");
+        }
+      } else {
+        success = true;
+      }
+      return success;
+    },
+
+    get: function(parameter){
+      var scorm = pipwerks.SCORM;
+      var value = null;
+      if(scorm.connection.isActive){
+        var API = scorm.API.getHandle();
+        if(API){
+          try {
+            value = API.LMSGetValue(parameter);
+          } catch(e) {
+            pipwerks.UTILS.trace("LMSGetValue exception: " + e.message);
+          }
+        }
+      }
+      return value !== null && typeof value !== 'undefined' ? String(value) : "";
+    },
+
+    set: function(parameter, value){
+      var scorm = pipwerks.SCORM;
+      var success = false;
+      if(scorm.connection.isActive){
+        var API = scorm.API.getHandle();
+        if(API){
+          try {
+            var res = String(API.LMSSetValue(parameter, String(value)));
+            success = (res === "true" || res === "1");
+          } catch(e) {
+            pipwerks.UTILS.trace("LMSSetValue exception: " + e.message);
+          }
+        }
+      }
+      return success;
+    },
+
+    save: function(){
+      var scorm = pipwerks.SCORM;
+      var success = false;
+      if(scorm.connection.isActive){
+        var API = scorm.API.getHandle();
+        if(API){
+          try {
+            var res = String(API.LMSCommit(""));
+            success = (res === "true" || res === "1");
+          } catch(e) {
+            pipwerks.UTILS.trace("LMSCommit exception: " + e.message);
+          }
+        }
+      }
+      return success;
+    },
+
+    quit: function(){
+      var scorm = pipwerks.SCORM;
+      var success = false;
+      if(scorm.connection.isActive){
+        var API = scorm.API.getHandle();
+        if(API){
+          scorm.save();
+          try {
+            var res = String(API.LMSFinish(""));
+            success = (res === "true" || res === "1");
+          } catch(e) {
+            pipwerks.UTILS.trace("LMSFinish exception: " + e.message);
+          }
+          scorm.connection.isActive = false;
+        }
+      }
+      return success;
+    },
+
+    API: {
+      getHandle: function(){
+        if (pipwerks.SCORM.API.handle) {
+          return pipwerks.SCORM.API.handle;
+        }
+
+        var API = null;
+        function findAPI(win) {
+          var findAPITries = 0;
+          while (win) {
+            try {
+              if (win.API) {
+                return win.API;
+              }
+            } catch (e) {
+              // Cross-origin iframe security restriction
+              break;
+            }
+
+            try {
+              if (!win.parent || win.parent === win) {
+                break;
+              }
+              win = win.parent;
+            } catch (e) {
+              break;
+            }
+
+            findAPITries++;
+            if (findAPITries > 50) {
+              break;
+            }
+          }
+          return null;
+        }
+
+        // 1. Current window & parent hierarchy
+        try {
+          API = findAPI(window);
+        } catch(e) {}
+
+        // 2. Opener hierarchy if launched in popup
+        if (!API) {
+          try {
+            if (window.opener && typeof window.opener !== 'undefined') {
+              API = findAPI(window.opener);
+            }
+          } catch (e) {}
+        }
+
+        // 3. Top window fallback
+        if (!API) {
+          try {
+            if (window.top && window.top !== window && typeof window.top !== 'undefined') {
+              API = findAPI(window.top);
+            }
+          } catch (e) {}
+        }
+
+        if (API) {
+          pipwerks.SCORM.API.handle = API;
+          pipwerks.SCORM.API.isFound = true;
+        }
+
+        return API;
+      }
+    }
+  },
+
+  UTILS: {
+    trace: function(msg){
+      if(window.console && window.console.log){
+        console.log("[SCORM 1.2 Wrapper]: " + msg);
+      }
+    }
+  }
+});
+
+  </script>
+  <script>
+    window.COURSE_DATA = window.COURSE_DATA || {
+  "title": "Üç Soruluk Değerlendirme Sınavı",
+  "slides": [
+    {
+      "id": "slide-q1",
+      "type": "quiz",
+      "title": "Soru 1",
+      "background": "#0f172a",
+      "elements": [],
+      "quiz": {
+        "question": "SCORM standartlarının en önemli faydası nedir?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Platform bağımsız içerik taşınabilirliği"
+          },
+          {
+            "id": "B",
+            "text": "Yalnızca yerel ağda çalışabilmesi"
+          },
+          {
+            "id": "C",
+            "text": "Raporlama yapamaması"
+          },
+          {
+            "id": "D",
+            "text": "Yüksek lisans maliyeti gerektirmesi"
+          }
+        ],
+        "correctAnswer": "A",
+        "points": 100,
+        "feedbackCorrect": "Tebrikler! Doğru cevap.",
+        "feedbackIncorrect": "Yanlış cevap, tekrar deneyiniz."
+      }
+    },
+    {
+      "id": "slide-q2",
+      "type": "quiz",
+      "title": "Soru 2",
+      "background": "#0f172a",
+      "elements": [],
+      "quiz": {
+        "question": "Hangi dosya SCORM paketinin bildirimini (manifest) içerir?",
+        "options": [
+          {
+            "id": "A",
+            "text": "course-data.js"
+          },
+          {
+            "id": "B",
+            "text": "imsmanifest.xml"
+          },
+          {
+            "id": "C",
+            "text": "SCORM_API_wrapper.js"
+          },
+          {
+            "id": "D",
+            "text": "index.html"
+          }
+        ],
+        "correctAnswer": "B",
+        "points": 100,
+        "feedbackCorrect": "Doğru! imsmanifest.xml SCORM paket tanımıdır.",
+        "feedbackIncorrect": "Yanlış cevap."
+      }
+    },
+    {
+      "id": "slide-q3",
+      "type": "quiz",
+      "title": "Soru 3",
+      "background": "#0f172a",
+      "elements": [],
+      "quiz": {
+        "question": "SCORM 1.2 sürümünde öğrenci ham puanı hangi CMI veri alanında tutulur?",
+        "options": [
+          {
+            "id": "A",
+            "text": "cmi.core.lesson_status"
+          },
+          {
+            "id": "B",
+            "text": "cmi.core.lesson_location"
+          },
+          {
+            "id": "C",
+            "text": "cmi.core.score.raw"
+          },
+          {
+            "id": "D",
+            "text": "cmi.suspend_data"
+          }
+        ],
+        "correctAnswer": "C",
+        "points": 100,
+        "feedbackCorrect": "Harika! cmi.core.score.raw doğru veri modelidir.",
+        "feedbackIncorrect": "Maalesef yanlış."
+      }
+    }
+  ]
+};
+  </script>
+  <script src="SCORM_API_wrapper.js"></script>
+  <script src="course-data.js"></script>
+
+  <script>
+    var currentSlideIndex = 0;
+    var startTime = new Date();
+    var isScormActive = false;
+    var maxVisitedIndex = 0;
+    // Quiz State: { [slideIndex]: { selected: 'A', isSubmitted: true, isCorrect: true } }
+    var quizAnswers = {};
+
+    function initPlayer() {
+      // 1. SCORM LMS Bağlantısı (Try-catch ile tam güvenlik koruması)
+      try {
+        if (typeof pipwerks !== 'undefined' && pipwerks.SCORM) {
+          isScormActive = pipwerks.SCORM.init();
+          if (isScormActive) {
+            var status = pipwerks.SCORM.get("cmi.core.lesson_status");
+            if (status === "not attempted" || status === "unknown" || !status) {
+              pipwerks.SCORM.set("cmi.core.lesson_status", "incomplete");
+              pipwerks.SCORM.save();
+              updateStatusBadge("incomplete");
+            } else {
+              updateStatusBadge(status);
+            }
+
+            var bookmark = pipwerks.SCORM.get("cmi.core.lesson_location");
+            if (bookmark && !isNaN(parseInt(bookmark))) {
+              var bIndex = parseInt(bookmark);
+              if (bIndex >= 0 && window.COURSE_DATA && window.COURSE_DATA.slides && bIndex < window.COURSE_DATA.slides.length) {
+                currentSlideIndex = bIndex;
+              }
+            }
+
+            var prevScore = pipwerks.SCORM.get("cmi.core.score.raw");
+            if (prevScore && !isNaN(parseInt(prevScore))) {
+              updateScoreBadge(parseInt(prevScore));
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[SCORM Init Warning]:", err);
+      }
+
+      // 2. Başlık ve İçerik Kontrolü
+      try {
+        if (window.COURSE_DATA) {
+          var cTitle = window.COURSE_DATA.title || 'E-Öğrenme Dersi';
+          var titleElem = document.getElementById('courseTitle');
+          if (titleElem) titleElem.innerText = cTitle;
+          document.title = cTitle;
+          
+          var hasQuizzes = (window.COURSE_DATA.slides || []).some(function(s) { return s.type === 'quiz'; });
+          if (hasQuizzes) {
+            var sBadge = document.getElementById('scoreBadge');
+            if (sBadge) sBadge.style.display = 'inline-block';
+          }
+        }
+      } catch (err) {
+        console.warn("[Title Init Warning]:", err);
+      }
+
+      // 3. Boyutlandırma ve İlk Slayt Çizimi
+      try {
+        handleResize();
+      } catch (err) {
+        console.warn("[Resize Warning]:", err);
+      }
+
+      try {
+        renderSlide();
+      } catch (err) {
+        console.error("[Render Slide Error]:", err);
+      }
+
+      // İframe boyutlarının gecikmeli oturması için 150ms ve 500ms tekrar kontrol
+      setTimeout(handleResize, 150);
+      setTimeout(handleResize, 500);
+    }
+
+    function handleResize() {
+      var container = document.getElementById('viewportContainer');
+      var scaler = document.getElementById('stageScaler');
+      if (!container || !scaler) return;
+
+      var cw = container.clientWidth || window.innerWidth || 960;
+      var ch = container.clientHeight || (window.innerHeight - 112) || 540;
+
+      // Minimum alan güvencesi
+      var availW = Math.max(300, cw - 30);
+      var availH = Math.max(200, ch - 30);
+
+      var scale = Math.min(availW / 960, availH / 540);
+      if (isNaN(scale) || scale <= 0.05) {
+        scale = 0.5;
+      }
+
+      scaler.style.transform = 'scale(' + scale + ')';
+    }
+
+    window.addEventListener('resize', handleResize);
+
+    // Skor ve Değerlendirme Hesaplama (SCORM cmi.core.score.raw)
+    function calculateEvaluation() {
+      var slides = (window.COURSE_DATA && window.COURSE_DATA.slides) || [];
+      var quizSlides = slides.filter(function(s) { return s.type === 'quiz'; });
+      if (quizSlides.length === 0) {
+        return { hasQuizzes: false, allAnswered: true, score: 100, passed: true };
+      }
+
+      var totalEarned = 0;
+      var maxTotal = 0;
+      var allAnswered = true;
+
+      quizSlides.forEach(function(s) {
+        var sIndex = slides.indexOf(s);
+        var ans = quizAnswers[sIndex];
+        var points = (s.quiz && s.quiz.points) ? parseInt(s.quiz.points) : 100;
+        maxTotal += points;
+        if (ans && ans.isSubmitted) {
+          if (ans.isCorrect) totalEarned += points;
+        } else {
+          allAnswered = false;
+        }
+      });
+
+      var normalizedScore = maxTotal > 0 ? Math.round((totalEarned / maxTotal) * 100) : 0;
+      var passed = (normalizedScore >= 80); // SCORM standart geçme barajı %80
+      return {
+        hasQuizzes: true,
+        allAnswered: allAnswered,
+        score: normalizedScore,
+        passed: passed
+      };
+    }
+
+    function renderSlide() {
+      var slides = (window.COURSE_DATA && window.COURSE_DATA.slides) || [];
+      var canvas = document.getElementById('slideCanvas');
+      if (!canvas) return;
+
+      if (slides.length === 0) {
+        canvas.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:50px;font-size:18px;">Ders içeriği bulunamadı.</div>';
+        return;
+      }
+
+      if (currentSlideIndex < 0) currentSlideIndex = 0;
+      if (currentSlideIndex >= slides.length) currentSlideIndex = slides.length - 1;
+
+      var slide = slides[currentSlideIndex];
+      canvas.style.backgroundColor = slide.background || '#ffffff';
+      canvas.innerHTML = '';
+
+      if (slide.type === 'quiz' && slide.quiz) {
+        renderQuizSlide(slide, canvas);
+      } else {
+        renderContentSlide(slide, canvas);
+      }
+
+      // Kontrolleri güncelle
+      var pBtn = document.getElementById('prevBtn');
+      var nBtn = document.getElementById('nextBtn');
+      var cElem = document.getElementById('slideCounter');
+      var fElem = document.getElementById('progressFill');
+
+      if (pBtn) pBtn.disabled = (currentSlideIndex === 0);
+      if (nBtn) {
+        if (currentSlideIndex === slides.length - 1) {
+          nBtn.innerText = 'Dersi Bitir ✓';
+        } else {
+          nBtn.innerText = 'Sonraki ❯';
+        }
+      }
+
+      if (cElem) cElem.innerText = 'Slayt ' + (currentSlideIndex + 1) + ' / ' + slides.length;
+      if (fElem) {
+        var progress = ((currentSlideIndex + 1) / slides.length) * 100;
+        fElem.style.width = progress + '%';
+      }
+
+      // Takip & SCORM Yer İmi (Location) Güncellemesi
+      if (currentSlideIndex > maxVisitedIndex) {
+        maxVisitedIndex = currentSlideIndex;
+      }
+
+      if (isScormActive) {
+        try {
+          pipwerks.SCORM.set("cmi.core.lesson_location", String(currentSlideIndex));
+          pipwerks.SCORM.save();
+        } catch (e) {}
+      }
+    }
+
+    function renderContentSlide(slide, canvas) {
+      var elements = slide.elements || [];
+      elements.forEach(function(el) {
+        var div = document.createElement('div');
+        div.className = 'stage-element';
+        div.style.left = (el.x || 0) + 'px';
+        div.style.top = (el.y || 0) + 'px';
+        div.style.width = (el.width || 100) + 'px';
+        div.style.height = (el.height || 50) + 'px';
+        div.style.zIndex = el.zIndex || 1;
+
+        if (el.type === 'text') {
+          var textDiv = document.createElement('div');
+          textDiv.className = 'element-text';
+          textDiv.innerText = el.text || '';
+          textDiv.style.fontSize = (el.fontSize || 18) + 'px';
+          textDiv.style.color = el.fontColor || '#000000';
+          textDiv.style.fontWeight = el.fontBold ? 'bold' : 'normal';
+          textDiv.style.fontStyle = el.fontItalic ? 'italic' : 'normal';
+          textDiv.style.textAlign = el.textAlign || 'left';
+          div.appendChild(textDiv);
+        } else if (el.type === 'button') {
+          var btnDiv = document.createElement('div');
+          btnDiv.className = 'stage-button';
+          btnDiv.innerText = el.text || 'Buton';
+          btnDiv.style.fontSize = (el.fontSize || 15) + 'px';
+          btnDiv.style.color = el.fontColor || '#ffffff';
+          btnDiv.style.backgroundColor = el.bgColor || '#3b82f6';
+          btnDiv.style.borderRadius = (el.borderRadius || 6) + 'px';
+          div.appendChild(btnDiv);
+        } else if (el.type === 'shape') {
+          var shapeDiv = document.createElement('div');
+          shapeDiv.className = 'element-shape';
+          shapeDiv.style.backgroundColor = el.fillColor || '#3b82f6';
+          shapeDiv.style.borderColor = el.borderColor || '#1d4ed8';
+          shapeDiv.style.borderWidth = (el.borderWidth || 0) + 'px';
+          shapeDiv.style.borderStyle = 'solid';
+          shapeDiv.style.borderRadius = el.shapeType === 'circle' ? '50%' : ((el.borderRadius || 0) + 'px');
+          div.appendChild(shapeDiv);
+        } else if (el.type === 'image') {
+          var imgDiv = document.createElement('div');
+          imgDiv.className = 'element-image';
+          imgDiv.style.width = '100%';
+          imgDiv.style.height = '100%';
+          var img = document.createElement('img');
+          if (el.src) img.src = el.src;
+          img.style.objectFit = el.objectFit || 'cover';
+          img.style.borderRadius = (el.borderRadius || 0) + 'px';
+          imgDiv.appendChild(img);
+          div.appendChild(imgDiv);
+        }
+
+        // Tetikleyici / Eylem (Trigger Action)
+        if (el.action && el.action.type && el.action.type !== 'none') {
+          div.classList.add('has-trigger');
+          div.onclick = (function(act) {
+            return function(e) {
+              e.stopPropagation();
+              executeTrigger(act);
+            };
+          })(el.action);
+        }
+
+        canvas.appendChild(div);
+      });
+    }
+
+    function executeTrigger(action) {
+      if (!action || action.type === 'none') return;
+      if (action.type === 'jumpToSlide' && action.targetSlideId) {
+        var slides = (window.COURSE_DATA && window.COURSE_DATA.slides) || [];
+        var targetIndex = -1;
+        for (var i = 0; i < slides.length; i++) {
+          if (slides[i].id === action.targetSlideId) {
+            targetIndex = i;
+            break;
+          }
+        }
+        if (targetIndex !== -1) {
+          currentSlideIndex = targetIndex;
+          renderSlide();
+        }
+      } else if (action.type === 'openUrl' && action.url) {
+        var url = action.url.trim();
+        if (url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) {
+          url = 'https://' + url;
+        }
+        window.open(url, '_blank');
+      }
+    }
+
+    function renderQuizSlide(slide, canvas) {
+      var quiz = slide.quiz;
+      var existingAns = quizAnswers[currentSlideIndex] || { selected: null, isSubmitted: false, isCorrect: false };
+
+      var wrapper = document.createElement('div');
+      wrapper.className = 'quiz-view-wrapper';
+
+      var card = document.createElement('div');
+      card.className = 'player-quiz-card';
+
+      // Header
+      var header = document.createElement('div');
+      header.className = 'quiz-card-header';
+      header.innerHTML = '<span class="quiz-pill">TEST SORUSU</span><span class="quiz-points">' + (quiz.points || 100) + ' Puan</span>';
+      card.appendChild(header);
+
+      // Soru Metni
+      var q = document.createElement('h2');
+      q.className = 'player-quiz-question';
+      q.innerText = quiz.question || '';
+      card.appendChild(q);
+
+      // Şıklar
+      var optContainer = document.createElement('div');
+      optContainer.className = 'player-quiz-options';
+
+      var options = quiz.options || [];
+      options.forEach(function(opt) {
+        var optDiv = document.createElement('div');
+        optDiv.className = 'player-opt-item';
+        if (existingAns.selected === opt.id) optDiv.classList.add('selected');
+        if (existingAns.isSubmitted) {
+          optDiv.classList.add('disabled');
+          if (opt.id === quiz.correctAnswer) optDiv.classList.add('is-correct');
+          else if (existingAns.selected === opt.id && !existingAns.isCorrect) optDiv.classList.add('is-wrong');
+        }
+
+        var optKey = document.createElement('div');
+        optKey.className = 'player-opt-key';
+        optKey.innerText = opt.id;
+
+        var optText = document.createElement('div');
+        optText.className = 'player-opt-text';
+        optText.innerText = opt.text;
+
+        optDiv.appendChild(optKey);
+        optDiv.appendChild(optText);
+
+        if (existingAns.isSubmitted) {
+          if (opt.id === quiz.correctAnswer) {
+            var tag = document.createElement('span');
+            tag.className = 'player-opt-tag correct';
+            tag.innerText = 'Doğru ✓';
+            optDiv.appendChild(tag);
+          } else if (existingAns.selected === opt.id && !existingAns.isCorrect) {
+            var tagW = document.createElement('span');
+            tagW.className = 'player-opt-tag wrong';
+            tagW.innerText = 'Yanlış ✕';
+            optDiv.appendChild(tagW);
+          }
+        }
+
+        optDiv.onclick = function() {
+          if (existingAns.isSubmitted) return;
+          existingAns.selected = opt.id;
+          quizAnswers[currentSlideIndex] = existingAns;
+          renderSlide();
+        };
+
+        optContainer.appendChild(optDiv);
+      });
+
+      card.appendChild(optContainer);
+
+      // Cevapla / Geri Bildirim Alanı
+      var actionBar = document.createElement('div');
+      actionBar.className = 'player-quiz-action-bar';
+
+      if (!existingAns.isSubmitted) {
+        var submitBtn = document.createElement('button');
+        submitBtn.className = 'player-btn-submit';
+        submitBtn.innerText = 'Cevapla';
+        submitBtn.disabled = !existingAns.selected;
+        submitBtn.onclick = function() {
+          if (!existingAns.selected) return;
+          var isCorrect = (existingAns.selected === quiz.correctAnswer);
+          existingAns.isSubmitted = true;
+          existingAns.isCorrect = isCorrect;
+          quizAnswers[currentSlideIndex] = existingAns;
+
+          // SCORM LMS Puan ve Durum Güncellemesi
+          syncQuizWithScorm();
+          renderSlide();
+        };
+        actionBar.appendChild(submitBtn);
+      } else {
+        var banner = document.createElement('div');
+        banner.className = 'player-feedback-banner ' + (existingAns.isCorrect ? 'correct' : 'wrong');
+        var msg = existingAns.isCorrect
+          ? '✓ ' + (quiz.feedbackCorrect || 'Tebrikler! Doğru cevap.')
+          : '✕ ' + (quiz.feedbackIncorrect || 'Maalesef yanlış cevap.');
+        
+        banner.innerHTML = '<span>' + msg + '</span>' + (!existingAns.isCorrect ? '<span class="player-correct-hint">Doğru Cevap: ' + quiz.correctAnswer + '</span>' : '');
+        actionBar.appendChild(banner);
+      }
+
+      card.appendChild(actionBar);
+      wrapper.appendChild(card);
+      canvas.appendChild(wrapper);
+    }
+
+    // SCORM API Wrapper ile Puan ve Geçti/Kaldı Durumunu Senkronize Etme
+    function syncQuizWithScorm() {
+      var evalResult = calculateEvaluation();
+      updateScoreBadge(evalResult.score);
+
+      if (isScormActive) {
+        try {
+          pipwerks.SCORM.set("cmi.core.score.raw", String(evalResult.score));
+          pipwerks.SCORM.set("cmi.core.score.min", "0");
+          pipwerks.SCORM.set("cmi.core.score.max", "100");
+
+          if (evalResult.allAnswered) {
+            var finalStatus = evalResult.passed ? "passed" : "failed";
+            pipwerks.SCORM.set("cmi.core.lesson_status", finalStatus);
+            updateStatusBadge(finalStatus);
+          } else {
+            pipwerks.SCORM.set("cmi.core.lesson_status", "incomplete");
+            updateStatusBadge("incomplete");
+          }
+
+          pipwerks.SCORM.save();
+        } catch (e) {}
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        currentSlideIndex--;
+        renderSlide();
+      }
+    }
+
+    function nextSlide() {
+      var slides = (window.COURSE_DATA && window.COURSE_DATA.slides) || [];
+      if (currentSlideIndex < slides.length - 1) {
+        currentSlideIndex++;
+        renderSlide();
+      } else {
+        // Dersi Bitir / Tamamla
+        var evalResult = calculateEvaluation();
+        updateScoreBadge(evalResult.score);
+
+        if (isScormActive) {
+          try {
+            if (evalResult.hasQuizzes) {
+              pipwerks.SCORM.set("cmi.core.score.raw", String(evalResult.score));
+              pipwerks.SCORM.set("cmi.core.score.min", "0");
+              pipwerks.SCORM.set("cmi.core.score.max", "100");
+              var finalStatus = evalResult.passed ? "passed" : "failed";
+              pipwerks.SCORM.set("cmi.core.lesson_status", finalStatus);
+              updateStatusBadge(finalStatus);
+            } else {
+              pipwerks.SCORM.set("cmi.core.lesson_status", "completed");
+              pipwerks.SCORM.set("cmi.core.score.raw", "100");
+              updateStatusBadge("completed");
+            }
+            pipwerks.SCORM.save();
+          } catch (e) {}
+        }
+
+        if (evalResult.hasQuizzes) {
+          if (evalResult.passed) {
+            alert('Tebrikler! Testi başarıyla geçtiniz. Puanınız: ' + evalResult.score + ' / 100');
+          } else {
+            alert('Ders tamamlandı. Sınav puanınız: ' + evalResult.score + ' / 100 (Geçme barajı: %80)');
+          }
+        } else {
+          alert('Tebrikler! Dersi başarıyla tamamladınız.');
+        }
+      }
+    }
+
+    function updateScoreBadge(score) {
+      var badge = document.getElementById('scoreBadge');
+      if (badge) {
+        badge.style.display = 'inline-block';
+        badge.innerText = 'Puan: ' + score + ' / 100';
+      }
+    }
+
+    function updateStatusBadge(status) {
+      var badge = document.getElementById('statusBadge');
+      if (!badge) return;
+      badge.className = 'status-badge ' + status;
+      if (status === 'passed') {
+        badge.innerText = 'Başarılı (Geçti) ✓';
+      } else if (status === 'failed') {
+        badge.innerText = 'Kaldı ✕';
+      } else if (status === 'completed') {
+        badge.innerText = 'Tamamlandı ✓';
+      } else if (status === 'incomplete') {
+        badge.innerText = 'Devam Ediyor...';
+      }
+    }
+
+    function formatScormTime(ms) {
+      var totalSec = Math.floor(ms / 1000);
+      var hours = Math.floor(totalSec / 3600);
+      var minutes = Math.floor((totalSec % 3600) / 60);
+      var seconds = totalSec % 60;
+      return (
+        String(hours).padStart(2, '0') + ':' +
+        String(minutes).padStart(2, '0') + ':' +
+        String(seconds).padStart(2, '0')
+      );
+    }
+
+    function handleExit() {
+      if (isScormActive) {
+        try {
+          var elapsed = new Date() - startTime;
+          pipwerks.SCORM.set("cmi.core.session_time", formatScormTime(elapsed));
+          pipwerks.SCORM.save();
+          pipwerks.SCORM.quit();
+        } catch (e) {}
+      }
+    }
+
+    window.addEventListener('beforeunload', handleExit);
+    window.addEventListener('pagehide', handleExit);
+
+    // Hazır olduğunda başlat
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPlayer);
+    } else {
+      initPlayer();
+    }
+    window.addEventListener('load', function() {
+      handleResize();
+      var canvas = document.getElementById('slideCanvas');
+      if (canvas && canvas.innerText && canvas.innerText.indexOf('yükleniyor') !== -1) {
+        initPlayer();
+      }
+    });
+  </script>
+</body>
+</html>

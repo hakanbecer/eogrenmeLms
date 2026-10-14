@@ -1,0 +1,49 @@
+{
+  "courseTitle": "Temel E-Öğrenme Dersi",
+  "author": "Eğitmen",
+  "activeSlideId": "slide-1",
+  "selectedElementId": null,
+  "slides": [
+    {
+      "id": "slide-1",
+      "type": "content",
+      "title": "Giriş Slaytı",
+      "background": "#ffffff",
+      "elements": [
+        {
+          "id": "elem-1",
+          "type": "text",
+          "text": "Temel Ders Başlığına Hoş Geldiniz",
+          "x": 80,
+          "y": 80,
+          "width": 800,
+          "height": 60,
+          "fontSize": 32,
+          "fontColor": "#1e293b",
+          "fontBold": true,
+          "fontItalic": false,
+          "textAlign": "center",
+          "zIndex": 1
+        },
+        {
+          "id": "elem-2",
+          "type": "button",
+          "text": "Web Sitesini Aç",
+          "x": 120,
+          "y": 200,
+          "width": 180,
+          "height": 48,
+          "fontSize": 15,
+          "fontColor": "#ffffff",
+          "bgColor": "#3b82f6",
+          "borderRadius": 8,
+          "zIndex": 2,
+          "action": {
+            "type": "openUrl",
+            "url": "https://example.com"
+          }
+        }
+      ]
+    }
+  ]
+}

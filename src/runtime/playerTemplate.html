@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Öğrenme Dersi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html {
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      overflow: hidden;
+      background: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    header.player-nav {
+      height: 52px;
+      min-height: 52px;
+      background: #1e293b;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid #334155;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .course-title {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+    .status-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .score-badge {
+      font-size: 12px;
+      background: #334155;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .status-badge {
+      font-size: 12px;
+      background: #334155;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    .status-badge.passed, .status-badge.completed {
+      background: #065f46;
+      color: #34d399;
+    }
+    .status-badge.failed {
+      background: #7f1d1d;
+      color: #f87171;
+    }
+    main.viewport-container {
+      flex: 1;
+      width: 100%;
+      height: calc(100% - 112px);
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .stage-scaler {
+      width: 960px;
+      height: 540px;
+      position: absolute;
+      transform-origin: center center;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: transform 0.1s ease-out;
+    }
+    .slide-canvas {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .stage-element {
+      position: absolute;
+      user-select: none;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+    }
+    .element-text {
+      width: 100%;
+      height: 100%;
+      word-break: break-word;
+      white-space: pre-wrap;
+      line-height: 1.3;
+    }
+    .element-shape {
+      width: 100%;
+      height: 100%;
+    }
+    .element-image img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .stage-button {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+      user-select: none;
+    }
+    .has-trigger {
+      cursor: pointer !important;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .has-trigger:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    /* Quiz Styles */
+    .quiz-view-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      box-sizing: border-box;
+    }
+    .player-quiz-card {
+      width: 100%;
+      max-width: 820px;
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      border-radius: 12px;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .quiz-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .quiz-pill {
+      background: rgba(139, 92, 246, 0.25);
+      color: #c084fc;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+    }
+    .quiz-points {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .player-quiz-question {
+      font-size: 20px;
+      color: #f8fafc;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+    .player-quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .player-opt-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #e2e8f0;
+      font-size: 14px;
+    }
+    .player-opt-item:hover:not(.disabled) {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.15);
+    }
+    .player-opt-item.selected {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.2);
+    }
+    .player-opt-item.is-correct {
+      border-color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.25) !important;
+    }
+    .player-opt-item.is-wrong {
+      border-color: #ef4444 !important;
+      background: rgba(239, 68, 68, 0.25) !important;
+    }
+    .player-opt-item.disabled {
+      cursor: default;
+    }
+    .player-opt-key {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: #f1f5f9;
+      flex-shrink: 0;
+    }
+    .player-opt-item.selected .player-opt-key {
+      background: #3b82f6;
+    }
+    .player-opt-item.is-correct .player-opt-key {
+      background: #10b981;
+    }
+    .player-opt-item.is-wrong .player-opt-key {
+      background: #ef4444;
+    }
+    .player-opt-text {
+      flex: 1;
+    }
+    .player-opt-tag {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .player-opt-tag.correct {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.2);
+    }
+    .player-opt-tag.wrong {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.2);
+    }
+    .player-quiz-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+    .player-btn-submit {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .player-btn-submit:hover:not(:disabled) {
+      background: #2563eb;
+    }
+    .player-btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .player-feedback-banner {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .player-feedback-banner.correct {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+      color: #34d399;
+    }
+    .player-feedback-banner.wrong {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+    }
+    .player-correct-hint {
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    footer.player-controls {
+      height: 60px;
+      min-height: 60px;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .progress-bar-container {
+      flex: 1;
+      max-width: 320px;
+      height: 8px;
+      background: #334155;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0 20px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #3b82f6;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .slide-counter {
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .nav-btn {
+      background: #3b82f6;
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: #2563eb;
+    }
+    .nav-btn:disabled {
+      background: #475569;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="player-nav">
+    <div id="courseTitle" class="course-title">E-Öğrenme Dersi</div>
+    <div class="status-container">
+      <div id="scoreBadge" class="score-badge" style="display: none;">Puan: 0 / 100</div>
+      <div id="statusBadge" class="status-badge">Başlatıldı</div>
+    </div>
+  </header>
+
+  <main class="viewport-container" id="viewportContainer">
+    <div class="stage-scaler" id="stageScaler">
+      <div class="slide-canvas" id="slideCanvas">
+        <div style="color: #94a3b8; text-align: center; padding: 40px; font-size: 16px;">
+          Ders yükleniyor...
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="player-controls">
+    <button class="nav-btn" id="prevBtn" onclick="prevSlide()">❮ Önceki</button>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <span class="slide-counter" id="slideCounter">Slayt 1 / 1</span>
+    <button class="nav-btn" id="nextBtn" onclick="nextSlide()">Sonraki ❯</button>
+  </footer>
+
+  <!-- Gömülü SCORM Wrapper & Ders Verisi (Tüm LMS ve iframe sandbox kısıtlamalarına karşı tam korumalı) -->
+  <script>
+    /* INJECT_SCORM_WRAPPER */
+  </script>
+  <script>
+    /* INJECT_COURSE_DATA */
+  </script>
+  <script src="SCORM_API_wrapper.js"></script>
+  <script src="course-data.js"></script>
+
+  <script>
+/* INJECT_PLAYER_JS */
+  </script>
+</body>
+</html>
